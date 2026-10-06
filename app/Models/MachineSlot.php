@@ -10,9 +10,10 @@ class MachineSlot extends Model
     protected $fillable = [
         'machine_id',
         'product_id',
-        'slot_number',
+        'slot_code',
         'capacity',
-        'current_stock',
+        'current_qty',
+        'hold_qty',
         'status',
     ];
 

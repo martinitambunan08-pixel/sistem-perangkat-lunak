@@ -7,32 +7,33 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     public function up(): void
-    {
-        Schema::create('machine_slots', function (Blueprint $table) {
-            $table->id();
+{
+    Schema::create('machine_slots', function (Blueprint $table) {
+        $table->id();
 
-            $table->foreignId('machine_id')
-                ->constrained('machines')
-                ->cascadeOnDelete();
+        $table->foreignId('machine_id')
+            ->constrained('machines')
+            ->cascadeOnDelete();
 
-            $table->foreignId('product_id')
-                ->constrained('products')
-                ->cascadeOnDelete();
+        $table->foreignId('product_id')
+            ->constrained('products')
+            ->cascadeOnDelete();
 
-            $table->string('slot_number');
-            $table->integer('capacity')->default(10);
-            $table->integer('current_stock')->default(0);
+        $table->string('slot_code');
+        $table->integer('capacity')->default(10);
+        $table->integer('current_qty')->default(50); // <--- Pastikan ini current_qty
+        $table->integer('hold_qty')->default(0);    // <--- TAMBAHKAN BARIS INI!
 
-            $table->enum('status', [
-                'active',
-                'empty',
-                'disabled'
-            ])->default('active');
+        $table->enum('status', [
+            'active',
+            'empty',
+            'disabled'
+        ])->default('active');
 
-            $table->timestamps();
+        $table->timestamps();
 
-            $table->unique(['machine_id', 'slot_number']);
-        });
+        $table->unique(['machine_id', 'slot_code']);
+    });
     }
 
     public function down(): void
