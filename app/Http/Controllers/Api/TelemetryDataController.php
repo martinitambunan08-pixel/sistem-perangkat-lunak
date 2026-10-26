@@ -11,7 +11,8 @@ class TelemetryDataController extends Controller
     public function index()
     {
         $telemetry = TelemetryData::with('machine')
-            ->latest('recorded_at')
+            ->orderByDesc('recorded_at')
+            ->orderByDesc('id')
             ->get();
 
         return response()->json([

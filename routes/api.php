@@ -1,3 +1,4 @@
+
 <?php
 
 use Illuminate\Http\Request;
@@ -12,24 +13,43 @@ use App\Http\Controllers\Api\MachineStatusLogController;
 use App\Http\Controllers\Api\TelemetryDataController;
 use App\Http\Controllers\Api\MaintenanceLogController;
 
+// =========================
+// USER API
+// =========================
+
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
 // =========================
-// ORDER API
+// ORDER API - VERSI LAMA
 // =========================
 
 Route::get('/orders', [OrderController::class, 'index']);
 Route::post('/orders', [OrderController::class, 'store']);
 Route::get('/orders/{order}', [OrderController::class, 'show']);
 Route::put('/orders/{order}', [OrderController::class, 'update']);
-
 Route::post('/orders/{order}/items', [OrderController::class, 'addItem']);
-
 Route::get('/orders/{order}/payments', [OrderController::class, 'payments']);
 Route::post('/orders/{order}/payments', [OrderController::class, 'addPayment']);
 
+// =========================
+// ORDER API - VERSI V1 (MA07)
+// =========================
+
+
+Route::prefix('v1')->group(function () {
+    Route::get('/orders', [OrderController::class, 'index']);
+    Route::post('/orders', [OrderController::class, 'store']);
+    Route::get('/orders/{order}', [OrderController::class, 'show']);
+    Route::put('/orders/{order}', [OrderController::class, 'update']);
+    Route::post('/orders/{order}/items', [OrderController::class, 'addItem']);
+    Route::get('/orders/{order}/payments', [OrderController::class, 'payments']);
+    Route::post('/orders/{order}/payments', [OrderController::class, 'addPayment']);
+
+    // Laporan transaksi harian untuk MA07
+    Route::get('/reports/daily', [\App\Http\Controllers\Api\ReportController::class, 'daily']);
+});
 
 // =========================
 // PRODUCT API
@@ -56,6 +76,12 @@ Route::delete('/machines/{machine}', [MachineController::class, 'destroy']);
 // =========================
 
 Route::get('/inventories', [ProductInventoryController::class, 'index']);
+
+Route::get('/machines/{machine}/monitoring', [
+    MachineController::class,
+    'monitoring',
+]);
+
 Route::post('/inventories', [ProductInventoryController::class, 'store']);
 Route::get('/inventories/{productInventory}', [ProductInventoryController::class, 'show']);
 Route::put('/inventories/{productInventory}', [ProductInventoryController::class, 'update']);
@@ -87,6 +113,28 @@ Route::delete('/machine-status-logs/{machineStatusLog}', [MachineStatusLogContro
 
 Route::get('/telemetry', [TelemetryDataController::class, 'index']);
 Route::post('/telemetry', [TelemetryDataController::class, 'store']);
+
+// Ambil telemetry terbaru berdasarkan ID mesin
+Route::get('/telemetry/latest/{machine_id}', function ($machine_id) {
+    $telemetry = \App\Models\TelemetryData::where('machine_id', $machine_id)
+        ->orderByDesc('recorded_at')
+        ->orderByDesc('id')
+        ->first();
+
+    if (!$telemetry) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Data telemetry untuk mesin ini belum tersedia.',
+        ], 404);
+    }
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Data telemetry terbaru berhasil diambil.',
+        'data' => $telemetry->load('machine'),
+    ]);
+});
+
 Route::get('/telemetry/{telemetryData}', [TelemetryDataController::class, 'show']);
 Route::put('/telemetry/{telemetryData}', [TelemetryDataController::class, 'update']);
 Route::delete('/telemetry/{telemetryData}', [TelemetryDataController::class, 'destroy']);

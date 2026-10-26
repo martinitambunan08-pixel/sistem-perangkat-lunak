@@ -8,21 +8,41 @@ use Illuminate\Http\Request;
 
 class OrderController extends Controller
 {
-    public function index()
-    {
-        $orders = Order::with([
-            'customer',
-            'machine',
-            'orderItems.product',
-            'payments',
-        ])->latest()->get();
+   
+public function index(Request $request)
+{
+    $validated = $request->validate([
+        'start_date' => ['sometimes', 'date_format:Y-m-d'],
+        'end_date' => [
+            'sometimes',
+            'date_format:Y-m-d',
+            'after_or_equal:start_date',
+        ],
+    ]);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Daftar order berhasil diambil.',
-            'data' => $orders,
-        ]);
+    $query = Order::with([
+        'customer',
+        'machine',
+        'orderItems.product',
+        'payments',
+    ]);
+
+    if (isset($validated['start_date'])) {
+        $query->whereDate('created_at', '>=', $validated['start_date']);
     }
+
+    if (isset($validated['end_date'])) {
+        $query->whereDate('created_at', '<=', $validated['end_date']);
+    }
+
+    $orders = $query->latest()->get();
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Daftar order berhasil diambil.',
+        'data' => $orders,
+    ]);
+}
 
     public function store(Request $request)
     {

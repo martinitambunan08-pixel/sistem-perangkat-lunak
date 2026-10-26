@@ -60,6 +60,57 @@ class MachineController extends Controller
         ]);
     }
 
+    
+public function monitoring(Machine $machine)
+{
+    $telemetry = $machine->telemetryData()
+        ->orderByDesc('recorded_at')
+        ->orderByDesc('id')
+        ->first();
+
+    $temperature = $telemetry !== null
+        && $telemetry->temperature !== null
+        ? (float) $telemetry->temperature
+        : null;
+
+    $temperatureStatus = 'no_data';
+
+    if ($temperature !== null) {
+        $temperatureStatus = $temperature > 70
+            ? 'warning'
+            : 'normal';
+    }
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Data monitoring mesin berhasil diambil.',
+        'data' => [
+            'machine_id' => $machine->id,
+            'machine_name' => $machine->name,
+            'machine_status' => $machine->status,
+            'location' => $machine->location,
+            'temperature' => $temperature,
+            'temperature_status' => $temperatureStatus,
+            'humidity' => $telemetry
+                ? $telemetry->humidity
+                : null,
+            'voltage' => $telemetry
+                ? $telemetry->voltage
+                : null,
+            'sensor_status' => $telemetry
+                ? $telemetry->sensor_status
+                : 'no_data',
+            'sensor_data' => $telemetry
+                ? $telemetry->sensor_data
+                : null,
+            'recorded_at' => $telemetry
+                ? $telemetry->recorded_at
+                : null,
+        ],
+    ]);
+}
+
+
     public function update(Request $request, Machine $machine)
     {
         $validated = $request->validate([
