@@ -20,60 +20,37 @@ class ProductSeeder extends Seeder
             'Snack'
         )->first();
 
-        $minuman = ProductCategory::where(
-            'name',
-            'Minuman'
-        )->first();
-
         Product::create([
             'category_id' => $makananUtama->id,
-            'name' => 'Nasi Goreng',
-            'description' => 'Nasi goreng hangat siap disajikan',
-            'price' => 15000,
-            'image' => null,
-            'is_available' => true,
-        ]);
-
-        Product::create([
-            'category_id' => $makananUtama->id,
-            'name' => 'Mie Goreng',
-            'description' => 'Mie goreng hangat siap disajikan',
+            'name' => 'Mie Tarempa Original',
+            'description' => 'Mie Tarempa Original hangat siap disajikan',
             'price' => 12000,
             'image' => null,
             'is_available' => true,
         ]);
 
         Product::create([
-            'category_id' => $snack->id,
-            'name' => 'Roti Cokelat',
-            'description' => 'Roti dengan isian cokelat',
-            'price' => 8000,
+            'category_id' => $makananUtama->id,
+            'name' => 'Mie Tarempa Ayam',
+            'description' => 'Mie Tarempa Ayam hangat siap disajikan',
+            'price' => 15000,
             'image' => null,
             'is_available' => true,
         ]);
 
         Product::create([
             'category_id' => $snack->id,
-            'name' => 'Kentang Goreng',
-            'description' => 'Kentang goreng hangat',
+            'name' => 'Luti Gendang Cokelat',
+            'description' => 'Luti Gendang dengan isian cokelat',
             'price' => 10000,
             'image' => null,
             'is_available' => true,
         ]);
 
         Product::create([
-            'category_id' => $minuman->id,
-            'name' => 'Teh Manis',
-            'description' => 'Teh manis siap minum',
-            'price' => 5000,
-            'image' => null,
-            'is_available' => true,
-        ]);
-
-        Product::create([
-            'category_id' => $minuman->id,
-            'name' => 'Kopi Susu',
-            'description' => 'Kopi susu hangat',
+            'category_id' => $snack->id,
+            'name' => 'Luti Gendang Abon',
+            'description' => 'Luti Gendang dengan isian abon',
             'price' => 10000,
             'image' => null,
             'is_available' => true,

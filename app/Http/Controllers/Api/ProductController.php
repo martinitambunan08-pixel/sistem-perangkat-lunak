@@ -4,89 +4,48 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Product;
+use App\Models\MachineSlot;
 use Illuminate\Http\Request;
 
 class ProductController extends Controller
 {
+    // GET /api/v1/products (Katalog Produk)
     public function index()
     {
-        $products = Product::with('category')
-            ->latest()
-            ->get();
+        $products = Product::all();
 
         return response()->json([
             'success' => true,
-            'message' => 'Daftar produk berhasil diambil.',
-            'data' => $products,
+            'message' => 'Daftar katalog produk',
+            'data' => $products
         ]);
     }
 
-    public function store(Request $request)
+    // GET /api/v1/inventory (Stok Slot per Mesin)
+    public function inventory(Request $request)
     {
-        $validated = $request->validate([
-            'category_id' => ['required', 'exists:product_categories,id'],
-            'name' => ['required', 'string', 'max:255'],
-            'description' => ['nullable', 'string'],
-            'price' => ['required', 'numeric', 'min:0'],
-            'image' => ['nullable', 'string'],
-            'is_available' => ['nullable', 'boolean'],
-        ]);
+        $query = MachineSlot::with(['product', 'machine']);
 
-        $product = Product::create($validated);
+        if ($request->has('machine_id')) {
+            $query->where('machine_id', $request->machine_id);
+        }
 
-        $product->load('category');
+        $slots = $query->get()->map(function ($slot) {
+            return [
+                'id' => $slot->id,
+                'machine_id' => $slot->machine_id,
+                'slot_code' => $slot->slot_code,
+                'product' => $slot->product,
+                'current_qty' => $slot->current_qty,
+                'hold_qty' => $slot->hold_qty ?? 0,
+                'available_qty' => max(0, $slot->current_qty - ($slot->hold_qty ?? 0)),
+            ];
+        });
 
         return response()->json([
             'success' => true,
-            'message' => 'Produk berhasil dibuat.',
-            'data' => $product,
-        ], 201);
-    }
-
-    public function show(Product $product)
-    {
-        $product->load([
-            'category',
-            'machineSlots.machine',
-            'inventories.machine',
-        ]);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Detail produk berhasil diambil.',
-            'data' => $product,
-        ]);
-    }
-
-    public function update(Request $request, Product $product)
-    {
-        $validated = $request->validate([
-            'category_id' => ['sometimes', 'exists:product_categories,id'],
-            'name' => ['sometimes', 'string', 'max:255'],
-            'description' => ['nullable', 'string'],
-            'price' => ['sometimes', 'numeric', 'min:0'],
-            'image' => ['nullable', 'string'],
-            'is_available' => ['sometimes', 'boolean'],
-        ]);
-
-        $product->update($validated);
-
-        $product->load('category');
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Produk berhasil diperbarui.',
-            'data' => $product,
-        ]);
-    }
-
-    public function destroy(Product $product)
-    {
-        $product->delete();
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Produk berhasil dihapus.',
+            'message' => 'Daftar stok slot mesin',
+            'data' => $slots
         ]);
     }
 }
