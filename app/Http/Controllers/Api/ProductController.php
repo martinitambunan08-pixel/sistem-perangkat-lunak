@@ -12,7 +12,7 @@ class ProductController extends Controller
     // GET /api/v1/products (Katalog Produk)
     public function index()
     {
-        $products = Product::all();
+        $products = Product::where('is_available', true)->get();
 
         return response()->json([
             'success' => true,

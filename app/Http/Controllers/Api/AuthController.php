@@ -16,8 +16,12 @@ class AuthController extends Controller
             'password' => 'required',
         ]);
 
-        $user = User::where('email', $request->email)->first();
+        // Cari akun berdasarkan email beserta relasi role
+        $user = User::with('role')
+            ->where('email', $request->email)
+            ->first();
 
+        // Periksa akun dan password
         if (!$user || !Hash::check($request->password, $user->password)) {
             return response()->json([
                 'success' => false,
@@ -25,8 +29,10 @@ class AuthController extends Controller
             ], 401);
         }
 
+        // Buat token autentikasi
         $token = $user->createToken('auth_token')->plainTextToken;
 
+        // Kirim respons login
         return response()->json([
             'success' => true,
             'message' => 'Login berhasil',
@@ -36,7 +42,7 @@ class AuthController extends Controller
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
-                'role' => $user->role ?? 'user',
+                'role' => $user->role()->value('name') ?? 'user',
             ]
         ]);
     }
