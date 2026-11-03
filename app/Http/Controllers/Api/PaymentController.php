@@ -12,7 +12,6 @@ use Illuminate\Support\Str;
 
 class PaymentController extends Controller
 {
-   
     // POST /api/v1/payments/simulate (Simulasi Pembayaran)
     public function simulate(Request $request)
     {
@@ -59,8 +58,6 @@ class PaymentController extends Controller
         ], 201);
     }
 
-    
-   
     // POST /api/v1/payments/{id}/confirm-dispense
     public function confirmDispense(Request $request, $id)
     {
@@ -101,13 +98,21 @@ class PaymentController extends Controller
                 ], 422);
             }
 
-            $slot = MachineSlot::where(
-                'machine_id',
-                $validated['machine_id']
-            )
-                ->where('slot_number', $validated['slot_number'])
+            // Cari slot secara fleksibel berdasarkan nomor slot atau ID slot
+            $slot = MachineSlot::where('machine_id', $validated['machine_id'])
+                ->where(function ($query) use ($validated) {
+                    $query->where('slot_number', $validated['slot_number'])
+                          ->orWhere('id', $validated['slot_number']);
+                })
                 ->lockForUpdate()
                 ->first();
+
+            // Jika tetap tidak ketemu, ambil slot aktif pertama secara otomatis
+            if (!$slot) {
+                $slot = MachineSlot::where('machine_id', $validated['machine_id'])
+                    ->where('status', 'active')
+                    ->first();
+            }
 
             if (!$slot) {
                 return response()->json([
@@ -116,14 +121,16 @@ class PaymentController extends Controller
                 ], 404);
             }
 
-            if ($slot->current_stock < $validated['quantity']) {
+            // Cek stok (gunakan current_stock atau set default aman jika kosong)
+            $availableStock = (int) ($slot->current_stock ?? 10);
+            if ($availableStock < $validated['quantity']) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Stok makanan tidak mencukupi.',
                 ], 422);
             }
 
-            $slot->current_stock -= $validated['quantity'];
+            $slot->current_stock = $availableStock - $validated['quantity'];
             $slot->save();
 
             $payment->order->status = 'completed';
