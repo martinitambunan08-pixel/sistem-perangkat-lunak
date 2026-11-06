@@ -15,6 +15,7 @@ use App\Http\Controllers\Api\MachineStatusLogController;
 use App\Http\Controllers\Api\TelemetryDataController;
 use App\Http\Controllers\Api\MaintenanceLogController;
 use App\Models\TelemetryData;
+use App\Http\Controllers\Api\V1\DailyMenuController;
 
 // USER API
 Route::get('/user', function (Request $request) {
@@ -33,6 +34,11 @@ Route::prefix('v1')->group(function () {
     Route::get('/products/{product}', [ProductController::class, 'show']);
     Route::put('/products/{product}', [ProductController::class, 'update']);
     Route::delete('/products/{product}', [ProductController::class, 'destroy']);
+
+    // DAILY MENUS
+    Route::get('/daily-menus', [DailyMenuController::class, 'index']);
+    Route::post('/daily-menus', [DailyMenuController::class, 'store']);
+    Route::get('/daily-menus/{id}', [DailyMenuController::class, 'show']);
 
     // ORDERS
     Route::get('/orders', [OrderController::class, 'index']);
