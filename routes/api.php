@@ -39,6 +39,9 @@ Route::prefix('v1')->group(function () {
     Route::get('/daily-menus', [DailyMenuController::class, 'index']);
     Route::post('/daily-menus', [DailyMenuController::class, 'store']);
     Route::get('/daily-menus/{id}', [DailyMenuController::class, 'show']);
+    Route::put('/daily-menus/{id}', [DailyMenuController::class, 'update']);
+    Route::delete('/daily-menus/{id}', [DailyMenuController::class, 'destroy']);
+    Route::post('/daily-menus/{id}/activate', [DailyMenuController::class, 'activate']);
 
     // ORDERS
     Route::get('/orders', [OrderController::class, 'index']);
